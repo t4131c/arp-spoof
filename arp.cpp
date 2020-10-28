@@ -119,15 +119,17 @@ void arp_spoof_init(pcap_t* handle, int idx){
 void relay_packet(pcap_t *handle, packet_info* packet, int idx){
     int len = ntohs(*((uint16_t*)(packet + 16)));
     len += 18;
-    memcpy(packet -> ethernet.ether_dhost, &(target_mac[idx]),6);
-    memcpy(packet -> ethernet.ether_shost, &my_macaddr, 6);
+
     for(int i=0; i<6; i++){
         if(i == 5){
-            printf("%x\n", (packet -> ethernet.ether_shost)[i]);
+            printf("%x\n", (packet -> ethernet.ether_dhost)[i]);
             break;
         }
-        printf("%x.", (packet -> ethernet.ether_shost)[i]);
+        printf("%x.", (packet -> ethernet.ether_dhost)[i]);
     }
+    memcpy(packet -> ethernet.ether_dhost, &(target_mac[idx]),6);
+    memcpy(packet -> ethernet.ether_shost, &my_macaddr, 6);
+
    // printf("%lx\n",*(packet -> ethernet.ether_dhost));
     //printf("%lx\n",packet -> ethernet.ether_shost);
     int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&packet), len);
