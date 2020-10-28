@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 	while(true){
 		end = clock();
 		runtime = (float)(end - start)/CLOCKS_PER_SEC;
-		if(runtime > 1){
+		if(runtime > 0.5){
 			for(int i = 0; i < idx; i++){
 				arp_spoof_init(handle, i);
 			}
@@ -96,24 +96,36 @@ int main(int argc, char* argv[]) {
 		if(eth_packet -> type_ == htons(EthHdr::Ip4)){
 			struct packet_info *p_info = (struct packet_info*) pkt_data;
 
-	        for(int i=0; i<4; i++){
-	            if(i == 3){
-	                printf("%d\n", (uint8_t *) &(p_info->ipv4.ip_src)[i]);
-	                break;
-	            }
-	            printf("%d.", (uint8_t *) &(p_info->ipv4.ip_src)[i]); 
-	        }    
 			
-			printf("------------------------\n");
-			printf("%x\n",ntohl(p_info->ipv4.ip_dst.s_addr));
+	        // for(int i=0; i<4; i++){
+	        //     if(i == 3){
+	        //         printf("%d\n", ((uint8_t *) &(p_info->ipv4.ip_src))[i]);
+	        //         break;
+	        //     }
+	        //     printf("%d.", ((uint8_t *) &(p_info->ipv4.ip_src))[i]); 
+	        // }    
+	        // for(int i=0; i<4; i++){
+	        //     if(i == 3){
+	        //         printf("%d\n", ((uint8_t *) &(p_info->ipv4.ip_dst))[i]);
+	        //         break;
+	        //     }
+	        //     printf("%d.", ((uint8_t *) &(p_info->ipv4.ip_dst))[i]); 
+	        // }    
+
+			//printf("%x\n",ntohl(p_info->ipv4.ip_src.s_addr));
 			for(int i = 0; i < idx; i++){
-				printf("%d : %x\n",i,(uint32_t)Ip(sender_ip[i]));
-				if(ntohl(p_info->ipv4.ip_dst.s_addr) == (uint32_t)Ip(sender_ip[i])){
-					relay_packet(handle, p_info,i);
-					printf("relay\n");
-				}
+				//printf("%d : %x\n",i,(uint32_t)Ip(sender_ip[i]));
+				if(ntohl(p_info->ipv4.ip_src.s_addr) != (uint32_t)Ip(sender_ip[i]))
+					continue;
+				if(ntohl(p_info->ipv4.ip_dst.s_addr) != (uint32_t)Ip(target_ip[i]))
+					continue;
+				printf("------------------------\n");
+				relay_packet(handle, p_info,i);
+				printf("relay\n");
+				printf("------------------------\n");
+			
 			}
-			printf("------------------------\n");
+			
 		}
 		
 	}
