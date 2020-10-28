@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
 		idx++;
 	}
-	
+
 	for(int i = 0; i < pair; i++){		
 		arp_spoof_init(handle,i);
 	}
@@ -95,6 +95,15 @@ int main(int argc, char* argv[]) {
 		}
 		if(eth_packet -> type_ == htons(EthHdr::Ip4)){
 			struct packet_info *p_info = (struct packet_info*) pkt_data;
+
+	        for(int i=0; i<4; i++){
+	            if(i == 3){
+	                printf("%d\n", (uint8_t *) &(p_info->ipv4.ip_src)[i]);
+	                break;
+	            }
+	            printf("%d.", (uint8_t *) &(p_info->ipv4.ip_src)[i]); 
+	        }    
+			
 			printf("------------------------\n");
 			printf("%x\n",ntohl(p_info->ipv4.ip_dst.s_addr));
 			for(int i = 0; i < idx; i++){
