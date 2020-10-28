@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 				if(ntohl(p_info->ipv4.ip_dst.s_addr) != (uint32_t)Ip(target_ip[i]))
 					continue;
 				printf("------------------------\n");
-				relay_packet(handle, p_info,i);
+				relay_packet(handle, (uint8_t*)pkt_data,i);
 				printf("relay\n");
 				printf("------------------------\n");
 			

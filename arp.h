@@ -43,4 +43,4 @@ void send_arp(pcap_t* handle, Mac eth_dmac, Mac eht_smac, ArpHdr::Operation todo
 EthArpPacket recv_arp(pcap_t* handle, Ip send_ip);
 void arp_spoof_init(pcap_t* handle, int idx);
 Mac get_mac_addr(pcap_t* handle, char* ipaddr);
-void relay_packet(pcap_t *handle, packet_info* packet, int idx);
+void relay_packet(pcap_t* handle, uint8_t* packet, int idx);

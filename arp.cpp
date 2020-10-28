@@ -130,29 +130,35 @@ void arp_spoof_init(pcap_t* handle, int idx){
 }
 
 
-
-void relay_packet(pcap_t *handle, packet_info* packet, int idx){
-    int len = ntohs(*((uint16_t*)((uint8_t*)packet + 16)));
+void relay_packet(pcap_t* handle, uint8_t* packet, int idx){
+    int len = ntohs(*((uint16_t*)(packet + 16)));
     len += 18;
-    ((EthHdr*)packet) -> smac_ = my_macaddr;
-    ((EthHdr*)packet) -> dmac_ = target_mac[idx];
-    // for(int i=0; i<6; i++){
-    //     if(i == 5){
-    //         printf("%x\n", (packet -> ethernet.ether_dhost)[i]);
-    //         break;
-    //     }
-    //     printf("%x.", (packet -> ethernet.ether_dhost)[i]);
-    // }
-    // memcpy(packet -> ethernet.ether_dhost, &(target_mac[idx]),6);
-    // memcpy(packet -> ethernet.ether_shost, &my_macaddr, 6);
+    memcpy(packet + 6, my_macaddr, 6);
+    memcpy(packet, target_mac[idx], 6);
+    pcap_sendpacket(handle, packet, len);
+}   
+// void relay_packet(pcap_t *handle, packet_info* packet, int idx){
+//     int len = ntohs(*((uint16_t*)((uint8_t*)packet + 16)));
+//     len += 18;
+//     ((EthHdr*)packet) -> smac_ = my_macaddr;
+//     ((EthHdr*)packet) -> dmac_ = target_mac[idx];
+//     // for(int i=0; i<6; i++){
+//     //     if(i == 5){
+//     //         printf("%x\n", (packet -> ethernet.ether_dhost)[i]);
+//     //         break;
+//     //     }
+//     //     printf("%x.", (packet -> ethernet.ether_dhost)[i]);
+//     // }
+//     // memcpy(packet -> ethernet.ether_dhost, &(target_mac[idx]),6);
+//     // memcpy(packet -> ethernet.ether_shost, &my_macaddr, 6);
 
-   // printf("%lx\n",*(packet -> ethernet.ether_dhost));
-    //printf("%lx\n",packet -> ethernet.ether_shost);
-    int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&packet), len);
-    if (res != 0) {
-        fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(handle));
-    }
-}
+//    // printf("%lx\n",*(packet -> ethernet.ether_dhost));
+//     //printf("%lx\n",packet -> ethernet.ether_shost);
+//     int res = pcap_sendpacket(handle, reinterpret_cast<const u_char*>(&packet), len);
+//     if (res != 0) {
+//         fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(handle));
+//     }
+// }
 
 
 
